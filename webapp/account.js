@@ -159,9 +159,31 @@ newBill.set('endDate', new Date(2014, 8, 8));
 
 console.log(monthlyBill.toString());
 
+
+
+
+
+
+var internet = new Account("SKY", "Phone, broadband and TV");
+
+var monthlyPayments = internet.addPaymentSchedule();
+monthlyPayments.set('amount', 100);
+monthlyPayments.set('startDate', new Date(2013, 9, 1));
+monthlyPayments.set('description', '12th of every month for a year');
+monthlyPayments.set('monthlyDates', [12]);
+monthlyPayments.set('repeatMonths', 12);
+
+var janOneOff = internet.addPaymentSchedule();
+janOneOff.set('amount', 65);
+janOneOff.set('startDate', new Date(2014, 1, 15));
+janOneOff.set('description', 'One off payment');
+
+
+
+
 var getDebug = function () {
 
-    return [phone];
+    return [internet, phone];
 }
 
 
