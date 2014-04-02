@@ -1,2 +1,45 @@
 extends layout
 block body
+    each account, i in accounts
+        h3= account.vendorName
+        p= account.description
+        p= account.paymentSchedules.length
+            |  payment schedules
+        table.table
+            thead
+                th Amount
+                th Start
+                th Regularity
+                th On
+                th Expiration
+            tbody
+                each sch in account.paymentSchedules
+                    tr
+                        td= sch.amount
+                        td
+                            = sch.startDate.getDate()
+                            | /
+                            = sch.startDate.getMonth()
+                            | /
+                            = sch.startDate.getFullYear()
+                        td
+                            if sch.daily
+                                | every day
+                            else if sch.weeklyDays.length
+                                | every
+                                = sch.weeklyGap > 0 ? ' ' + (sch.weeklyGap + 1) + ' weeks' : ' week'
+                            else if sch.monthlyDates.length
+                                | every
+                                = sch.monthlyGap > 0 ? ' ' + (sch.monthlyGap + 1) + ' months' : ' month'
+                        td
+                            if sch.daily
+                                | every day
+
+                            else if sch.weeklyDays.length
+                                each day in sch.weeklyDays
+                                    = days[day] + " "
+
+                            else if sch.monthlyDates.length
+                                each date in sch.monthlyDates
+                                    = date == -1 ? 'last-day' : date
+
