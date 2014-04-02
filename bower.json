@@ -1,0 +1,13 @@
+{
+  "name": "flatrate",
+  "version": "0.0.1",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components"
+  ],
+  "dependencies": {
+    "normalize-css": "~3.0.0"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "schedules",
+  "version": "0.0.1",
+  "description": "Schedules date manager",
+  "authors": [
+    "Alex Coady"
+  ],
+  "dependencies": {
+    "express": "~3.4.5",
+    "mongoose": "~3.8.1",
+    "jade": "~0.35.0"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.2",
+    "grunt-nodemon": "~0.1.2",
+    "grunt-contrib-jshint": "~0.7.2",
+    "grunt-contrib-watch": "~0.5.3"
+  }
+}
