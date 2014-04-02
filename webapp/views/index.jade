@@ -10,7 +10,7 @@ block body
                 th Amount
                 th Start
                 th Regularity
-                th On
+                th On (day/date)
                 th Expiration
             tbody
                 each sch in account.paymentSchedules
@@ -42,4 +42,29 @@ block body
                             else if sch.monthlyDates.length
                                 each date in sch.monthlyDates
                                     = date == -1 ? 'last-day' : date
+
+                            //- TODO: Add specials (specific monthly week)
+                        td
+                            if sch.repeatDays
+                                = sch.repeatDays + " days"
+
+                            else if sch.repeatWeeks
+                                = sch.repeatWeeks + " weeks"
+
+                            else if sch.repeatMonths
+                                = sch.repeatMonths + " months"
+
+                            else if sch.repeatYears
+                                = sch.repeatYears + " years"
+
+                            else if sch.endDate
+                                | on
+                                = ' ' + sch.endDate.getDate()
+                                | /
+                                = sch.endDate.getMonth()
+                                | /
+                                = sch.endDate.getFullYear()
+
+                            else
+                                | Never expires
 

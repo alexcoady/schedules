@@ -38,8 +38,8 @@ function PaymentSchedule () {
 
     this.monthlyDates = []; // -1 - 30 (-1 = last)
     this.monthlyGap = 0;
-    this.specificMontlyWeek; // 1st, 2nd ... last week in month
-    this.specificMontlyWeekDays = []; // 0 - 6
+    this.specificMonthlyWeek; // 1st, 2nd ... last week in month
+    this.specificMonthlyWeekDays = []; // 0 - 6
 
     // Expiration
     this.repeatDays; // 10 days
@@ -149,6 +149,13 @@ monthlyBill.set('amount', 40);
 monthlyBill.set('startDate', new Date(2012, 1, 1));
 monthlyBill.set('description', 'Last day of each month forever');
 monthlyBill.set('monthlyDates', [-1]);
+
+var newBill = phone.addPaymentSchedule();
+newBill.set('amount', 30);
+newBill.set('startDate', new Date(2012, 1, 1));
+newBill.set('description', 'Every friday until date');
+newBill.set('weeklyDays', [5]);
+newBill.set('endDate', new Date(2014, 8, 8));
 
 console.log(monthlyBill.toString());
 
