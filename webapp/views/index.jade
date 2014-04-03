@@ -7,7 +7,7 @@ block body
         h4
             = account.paymentSchedules.length
             |  Payment schedules
-        table.table
+        table.table.table-condensed
             thead
                 th Amount
                 th Start
@@ -52,17 +52,17 @@ block body
                                 | -
                             //- TODO: Add specials (specific monthly week)
                         td
-                            if sch.repeatDays
-                                = sch.repeatDays + " days"
+                            if sch.forDays
+                                = sch.forDays + " days"
 
-                            else if sch.repeatWeeks
-                                = sch.repeatWeeks + " weeks"
+                            else if sch.forWeeks
+                                = sch.forWeeks + " weeks"
 
-                            else if sch.repeatMonths
-                                = sch.repeatMonths + " months"
+                            else if sch.forMonths
+                                = sch.forMonths + " months"
 
-                            else if sch.repeatYears
-                                = sch.repeatYears + " years"
+                            else if sch.forYears
+                                = sch.forYears + " years"
 
                             else if sch.endDate
                                 | on
@@ -77,7 +77,7 @@ block body
         h4 Next payments
         each sch in account.paymentSchedules
             h5= sch.description
-            table.table
+            table.table.table-condensed
                 thead
                     th Date
                     th Amount
