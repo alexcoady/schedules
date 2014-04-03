@@ -10,7 +10,8 @@ module.exports = function (app) {
         res.render('index', {
 
             accounts: account.getDebug(),
-            days: account.getDays()
+            days: account.getDays(),
+            getDerPayments: account.getDerPayments
 
         });
     });

@@ -32,6 +32,7 @@ function PaymentSchedule () {
 
     // Repetition
     this.daily; // Every day
+    this.dailyGap = 0;
 
     this.weeklyDays = []; // 0 - 6
     this.weeklyGap = 0; // 1 to leave 1 week between weeks, 2 to leave 2 etc (for fortnightly, every 4 weeks etc)
@@ -58,6 +59,65 @@ PaymentSchedule.prototype = {
 
     get: function (property) {
         return this[property];
+    },
+
+    getPayments: function (limit) {
+
+        var payments = [],
+            nextDate,
+            currentDate = this.startDate,
+            expDate = this.endDate;
+
+        limit = limit || 1;
+
+        // First payment is the start date
+        payments.push({
+            date: currentDate,
+            amount: this.amount
+        });
+
+        limit--;
+
+        if ( !expDate ) {
+
+            // Set expirey to start date and add days as required
+            expDate = new Date( currentDate.getTime() );
+
+            if ( this.repeatDays ) {
+
+                expDate.setDate( expDate.getDate() + (this.repeatDays * (this.dailyGap + 1)) );
+            }
+        }
+
+        // See if repeats daily
+        if ( this.daily ) {
+
+            while (limit--) {
+
+                nextDate = new Date( currentDate.getTime() );
+                nextDate.setDate( nextDate.getDate() + 1 + this.dailyGap );
+
+                // Check if schedule has expired
+                if ( nextDate > expDate ) {
+
+                    // Expired!
+                    limit = 0;
+
+                    // break!
+                    continue;
+                }
+
+                currentDate = nextDate;
+
+                payments.push({
+                    date: currentDate,
+                    amount: this.amount,
+                    last: limit == 0
+                });
+            }
+        }
+
+        return payments;
     },
 
     toString: function () {
@@ -178,6 +238,15 @@ janOneOff.set('amount', 65);
 janOneOff.set('startDate', new Date(2014, 1, 15));
 janOneOff.set('description', 'One off payment');
 
+var dailyCharge = internet.addPaymentSchedule();
+dailyCharge.set('amount', 1.99);
+dailyCharge.set('startDate', new Date(2014, 1, 15));
+dailyCharge.set('description', 'Daily usage costs 15th until the 20th');
+dailyCharge.set('daily', true);
+dailyCharge.set('dailyGap', 1);
+dailyCharge.set('repeatDays', 3);
+// dailyCharge.set('endDate', new Date(2014, 1, 20));
+
 
 
 
@@ -208,9 +277,14 @@ var getDays = function () {
     ]
 }
 
+var getDerPayments = function (schedule, limit) {
+
+    return schedule.getPayments(limit);
+}
 
 module.exports = {
 
     getDebug: getDebug,
-    getDays: getDays
+    getDays: getDays,
+    getDerPayments: getDerPayments
 };

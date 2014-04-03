@@ -2,9 +2,11 @@ extends layout
 block body
     each account, i in accounts
         h3= account.vendorName
-        p= account.description
-        p= account.paymentSchedules.length
-            |  payment schedules
+            small
+                = ' ' + account.description
+        h4
+            = account.paymentSchedules.length
+            |  Payment schedules
         table.table
             thead
                 th Amount
@@ -31,6 +33,9 @@ block body
                             else if sch.monthlyDates.length
                                 | every
                                 = sch.monthlyGap > 0 ? ' ' + (sch.monthlyGap + 1) + ' months' : ' month'
+
+                            else
+                                | -
                         td
                             if sch.daily
                                 | every day
@@ -43,6 +48,8 @@ block body
                                 each date in sch.monthlyDates
                                     = date == -1 ? 'last-day' : date + ( date > 10 && date < 20 ? 'th' : ( date % 10 == 1 ? 'st' : ( date % 10 == 2 ?  'nd' : ( date % 10 == 3 ? 'rd' : 'th' ) ) ) )
 
+                            else
+                                | -
                             //- TODO: Add specials (specific monthly week)
                         td
                             if sch.repeatDays
@@ -67,4 +74,21 @@ block body
 
                             else
                                 | Never expires
+        h4 Next payments
+        each sch in account.paymentSchedules
+            h5= sch.description
+            table.table
+                thead
+                    th Date
+                    th Amount
+                tbody
+                    each payment, i in getDerPayments(sch, 20)
+                        tr
+                            td
+                                = payment.date.getDate()
+                                | /
+                                = payment.date.getMonth()
+                                | /
+                                = payment.date.getFullYear()
+                            td= '£' + payment.amount
 
