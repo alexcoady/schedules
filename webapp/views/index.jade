@@ -80,15 +80,18 @@ block body
             table.table.table-condensed
                 thead
                     th Date
+                    th Day
                     th Amount
                 tbody
-                    each payment, i in getDerPayments(sch, 20)
+                    each payment, i in getDerPayments(sch, 10)
                         tr
                             td
+                                //- = payment.date.toString()
                                 = payment.date.getDate()
                                 | /
                                 = payment.date.getMonth()
                                 | /
                                 = payment.date.getFullYear()
+                            td= days[payment.date.getDay()]
                             td= '£' + payment.amount
 

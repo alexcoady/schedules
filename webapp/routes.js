@@ -11,6 +11,7 @@ module.exports = function (app) {
 
             accounts: account.getDebug(),
             days: account.getDays(),
+            months: account.getMonths(),
             getDerPayments: account.getDerPayments
 
         });

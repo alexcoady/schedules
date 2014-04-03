@@ -63,103 +63,133 @@ PaymentSchedule.prototype = {
 
     getExpiryDate: function () {
 
-        var exp;
+        var self = this,
+            exp = new Date( this.startDate.getTime() );
+
+        // console.log('Start date', self.amount, self.startDate.toString());
 
         // If we have an end date, it's this
         if ( this.endDate ) {
 
-            return this.endDate;
+            return new Date( this.endDate.getTime() );
         }
 
         // Repeats
         if ( this.forDays ) {
 
-            exp = new Date( this.startDate.getTime() );
-            exp.setDate( exp.getDate() + this.forDays );
 
+            exp.setDate( exp.getDate() + this.forDays );
+            // console.log('End date (days)', self.amount, exp.toString());
             return exp;
         }
 
         if ( this.forWeeks ) {
 
-            exp = new Date( this.startDate.getTime() );
             exp.setDate( exp.getDate() + this.forWeeks * 7 );
-
+            // console.log('End date (weeks)', self.amount, exp.toString());
             return exp;
         }
 
         if ( this.forMonths ) {
 
-            exp = new Date( this.startDate.getTime() );
+            console.log('Current month', exp.getMonth(), 'Add', this.forMonths);
             exp.setMonth( exp.getMonth() + this.forMonths );
 
+            // console.log('End date (months)', self.amount, exp.toString());
             return exp;
         }
 
         if ( this.forYears ) {
 
-            exp = new Date( this.startDate.getTime() );
             exp.setFullYear( exp.getFullYear() + this.forYears );
-
+            // console.log('End date (years)', self.amount, exp.toString());
             return exp;
         }
 
-        // No repetition. End date = start date!
-        return this.startDate;
+        return false;
     },
 
     getPayments: function (limit) {
 
-        var payments = [],
+        var self = this,
+            payments = [],
             nextDate,
-            currentDate = this.startDate,
-            expDate = this.getExpiryDate();
+            currentDate = new Date( self.startDate.getTime() ),
+            expDate = self.getExpiryDate();
 
         limit = limit || 1;
 
         // First payment is the start date
-        payments.push({
-            date: currentDate,
-            amount: this.amount
-        });
+        // payments.push({
+        //     date: currentDate,
+        //     amount: self.amount
+        // });
 
-        limit--;
+        // limit--;
 
-        if ( !expDate ) {
+        // Collect results
 
-            // Set expirey to start date and add days as required
-            expDate = new Date( currentDate.getTime() );
+        // if ( self.daily ) {
 
-            if ( this.forDays ) {
+        //     nextDate = new Date( currentDate.getTime() );
+        //     nextDate.setDate( nextDate.getDate() + 1 + self.dailyGap );
 
-                expDate.setDate( expDate.getDate() + (this.forDays * (this.dailyGap + 1)) );
-            }
-        }
+        //     if ( expDate && nextDate > expDate ) return payments;
 
-        // See if repeats daily
-        if ( this.daily ) {
+        //     currentDate = nextDate;
 
-            while (limit--) {
+        //     payments.push({
+        //         date: nextDate,
+        //         amount: self.amount
+        //     });
+        // }
 
-                nextDate = new Date( currentDate.getTime() );
-                nextDate.setDate( nextDate.getDate() + 1 + this.dailyGap );
+        if ( self.weeklyDays.length ) {
 
-                // Check if schedule has expired
-                if ( nextDate > expDate ) {
+            var weekIterator = new Date( self.startDate.getTime() );
 
+            // Set to sunday before start date
+            weekIterator.setDate( weekIterator.getDate() - weekIterator.getDay() );
+
+            // Loop through repetitions
+            while (limit > 0) {
+
+                if ( weekIterator > expDate ) {
                     limit = 0;
                     continue;
                 }
 
-                currentDate = nextDate;
+                self.weeklyDays.forEach(function (day, index) {
 
-                payments.push({
-                    date: currentDate,
-                    amount: this.amount,
-                    last: limit == 0
+                    if (limit > 0) {
+
+                        console.log('limit now =', limit);
+
+                        var sunday = new Date( weekIterator.getTime() );
+
+                        var dayDate = new Date( sunday.getTime() );
+                        dayDate.setDate( dayDate.getDate() + day );
+
+                        if ( dayDate >= self.startDate ) {
+
+                            payments.push({
+                                date: dayDate,
+                                amount: self.amount
+                            });
+
+                            limit--;
+                        }
+                    }
                 });
+
+                weekIterator.setDate( weekIterator.getDate() + 7 + ( self.weeklyGap * 7 ) );
+                console.log('limit =', limit);
             }
+            console.log('......');
+
+
         }
+
 
         return payments;
     },
@@ -225,21 +255,21 @@ var phone = new Account();
 phone.set('vendorName', 'O2');
 phone.set('description', 'Phone bill and that');
 
-var phoneSchedule = phone.addPaymentSchedule();
+// var phoneSchedule = phone.addPaymentSchedule();
 
-phoneSchedule.set('amount', 99.99);
-phoneSchedule.set('startDate', new Date());
-phoneSchedule.set('description', 'This and next 2 months on the 12th');
-phoneSchedule.set('monthlyDates', [12]);
-phoneSchedule.set('forMonths', 2);
+// phoneSchedule.set('amount', 99.99);
+// phoneSchedule.set('startDate', new Date(2014, 3, 11));
+// phoneSchedule.set('description', 'This and next 2 months on the 12th');
+// phoneSchedule.set('monthlyDates', [12]);
+// phoneSchedule.set('forMonths', 2);
 
 var paySchedule = phone.addPaymentSchedule();
 paySchedule.set('amount', 22.15);
-paySchedule.set('startDate', new Date());
-paySchedule.set('description', 'Every 2 weeks on Mon + Weds for the next 8 months');
+paySchedule.set('startDate', new Date(2014, 3, 2));
+paySchedule.set('description', 'Every 2 weeks on Mon + Weds for the next 4 months');
 paySchedule.set('weeklyDays', [1, 3]);
 paySchedule.set('weeklyGap', 1); // 1 week gap between weeks
-paySchedule.set('forMonths', 8);
+paySchedule.set('forMonths', 4);
 
 var christmasBill = phone.addPaymentSchedule();
 christmasBill.set('amount', 155);
@@ -260,8 +290,6 @@ newBill.set('startDate', new Date(2012, 1, 1));
 newBill.set('description', 'Every friday until date');
 newBill.set('weeklyDays', [5]);
 newBill.set('endDate', new Date(2014, 8, 8));
-
-console.log(monthlyBill.toString());
 
 
 
@@ -294,15 +322,29 @@ dailyCharge.set('endDate', new Date(2014, 1, 20));
 
 var getDebug = function () {
 
-    return [internet, phone];
+    return [phone];
 }
 
 
 
 
 
-var getDates = function () {
+var getMonths = function () {
 
+    return [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sept",
+        "Oct",
+        "Nov",
+        "Dec"
+    ]
 }
 
 
@@ -328,5 +370,6 @@ module.exports = {
 
     getDebug: getDebug,
     getDays: getDays,
+    getMonths: getMonths,
     getDerPayments: getDerPayments
 };
