@@ -232,7 +232,10 @@ PaymentSchedule.prototype = {
         // One-off
         else {
 
-
+            payments.push({
+                date: new Date( self.startDate.getTime() ),
+                amount: self.amount
+            });
         }
 
 
