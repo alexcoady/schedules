@@ -98,15 +98,17 @@ PaymentSchedule.prototype = {
         return false;
     },
 
-    getDailyPayments: function (limit) {
+    getDailyPayments: function (limit, startDate) {
 
         var self = this,
             expDate = self.getExpiryDate(),
             payments = [],
             dayIterator;
 
+        startDate = startDate || self.startDate;
+
         // Define iterator to loop through days
-        dayIterator = new Date( self.startDate.getTime() );
+        dayIterator = new Date( startDate.getTime() );
 
         while ( limit > 0 ) {
 
@@ -128,14 +130,16 @@ PaymentSchedule.prototype = {
         return payments;
     },
 
-    getWeeklyPayments: function (limit) {
+    getWeeklyPayments: function (limit, startDate) {
 
         var self = this,
             expDate = self.getExpiryDate(),
             payments = [],
             weekIterator;
 
-        weekIterator = new Date( self.startDate.getTime() );
+        startDate = startDate || self.startDate;
+
+        weekIterator = new Date( startDate.getTime() );
 
         // Set to sunday before start date
         weekIterator.setDate( weekIterator.getDate() - weekIterator.getDay() );
@@ -155,7 +159,7 @@ PaymentSchedule.prototype = {
                     var dayDate = new Date( weekIterator.getTime() );
                     dayDate.setDate( dayDate.getDate() + day );
 
-                    if ( dayDate >= self.startDate ) {
+                    if ( dayDate >= startDate ) {
 
                         payments.push({
                             date: dayDate,
@@ -173,14 +177,16 @@ PaymentSchedule.prototype = {
         return payments;
     },
 
-    getMonthlyPayments: function (limit) {
+    getMonthlyPayments: function (limit, startDate) {
 
         var self = this,
             expDate = self.getExpiryDate(),
             payments = [],
             monthIterator;
 
-        monthIterator = new Date( self.startDate.getTime() );
+        startDate = startDate || self.startDate;
+
+        monthIterator = new Date( startDate.getTime() );
         monthIterator.setDate( 0 );
 
         // Loop through repetitions
@@ -208,7 +214,7 @@ PaymentSchedule.prototype = {
                         dateDate.setDate( dateDate.getDate() + date );
                     }
 
-                    if ( dateDate >= self.startDate ) {
+                    if ( dateDate >= startDate ) {
 
                         payments.push({
                             date: dateDate,
@@ -234,7 +240,7 @@ PaymentSchedule.prototype = {
         return payments;
     },
 
-    getSpecificMonthlyPayments: function (limit) {
+    getSpecificMonthlyPayments: function (limit, startDate) {
 
         var self = this,
             expDate = self.getExpiryDate(),
@@ -243,11 +249,14 @@ PaymentSchedule.prototype = {
             weekIterator,
             monthDatePool = {},
             sameMonth,
-            potentialDay;
+            potentialDay,
+            payment;
+
+        startDate = startDate || self.startDate;
 
         // Loop through months
 
-        monthIterator = new Date( self.startDate.getTime() );
+        monthIterator = new Date( startDate.getTime() );
 
         while ( limit > 0 ) {
 
@@ -269,7 +278,7 @@ PaymentSchedule.prototype = {
 
                     if ( potentialDay.getMonth() === monthIterator.getMonth() ) {
 
-                        if ( potentialDay >= self.startDate ) {
+                        if ( potentialDay >= startDate ) {
 
                             monthDatePool[day].push({
                                 date: potentialDay,
@@ -292,22 +301,22 @@ PaymentSchedule.prototype = {
 
                 self.monthlySpecificDays.forEach(function (day) {
 
-                    var cmon;
-
                     if ( limit > 0 ) {
+
+                        payment = null;
 
                         if (occurance === -1) {
 
-                            cmon = monthDatePool[day][monthDatePool[day].length -1];
+                            payment = monthDatePool[day][monthDatePool[day].length -1];
 
                         } else if ([1,2,3,4].indexOf(occurance) !== -1) {
 
-                            cmon = monthDatePool[day][occurance-1];
+                            payment = monthDatePool[day][occurance-1];
                         }
 
-                        if (cmon) {
+                        if (payment) {
 
-                            payments.push( cmon );
+                            payments.push( payment );
                             limit--;
                         }
                     }
@@ -321,10 +330,14 @@ PaymentSchedule.prototype = {
         return payments;
     },
 
-    getOneOffPayment: function () {
+    getOneOffPayment: function (startDate) {
 
         var self = this,
             payments = [];
+
+        // Kick back before adding anything if custom start date
+        // is after the date of this one off
+        if ( self.startDate < startDate ) return payments;
 
         payments.push({
             date: new Date( self.startDate.getTime() ),
@@ -334,7 +347,7 @@ PaymentSchedule.prototype = {
         return payments;
     },
 
-    getPayments: function (limit) {
+    getPayments: function (limit, startDate) {
 
         var self = this,
             payments = [],
@@ -344,81 +357,26 @@ PaymentSchedule.prototype = {
 
         if ( self.daily ) {
 
-            payments = self.getDailyPayments(limit);
+            payments = self.getDailyPayments(limit, startDate);
 
         } else if ( self.weeklyDays.length ) {
 
-            payments = self.getWeeklyPayments(limit);
+            payments = self.getWeeklyPayments(limit, startDate);
 
         } else if ( self.monthlyDates.length ) {
 
-            payments = self.getMonthlyPayments(limit);
+            payments = self.getMonthlyPayments(limit, startDate);
 
         } else if ( self.monthlySpecific.length && self.monthlySpecificDays.length ) {
 
-            payments = self.getSpecificMonthlyPayments(limit);
+            payments = self.getSpecificMonthlyPayments(limit, startDate);
 
         } else {
 
-            payments = self.getOneOffPayment();
+            payments = self.getOneOffPayment(startDate);
         }
 
         return payments;
-    },
-
-    toString: function () {
-
-        var info = "";
-
-        info += "Amount: " + this.amount + ".";
-
-        // Repetition
-        if ( this.daily ) {
-
-            info += " This schedule repeats daily.";
-
-        } else if ( this.weeklyDays.length ) {
-
-            info += " This schedule repeats every " + (this.weeklyGap ? (this.weeklyGap + 1) + " weeks" : "week") + " on ";
-            info += this.weeklyDays.join(", ") + ". ";
-
-        } else if ( this.monthlyDates.length ) {
-
-            info += " This schedule repeats every " + (this.monthlyGap ? (this.monthlyGap + 1) + " months" : "month") + " on ";
-            info += this.monthlyDates.join(", ") + ". ";
-
-        } else {
-
-            info += " This schedule does not repeat.";
-        }
-
-        if ( this.startDate ) {
-
-            info += " Starts on " + this.startDate.getDate() + "/" + this.startDate.getMonth() + "/" + this.startDate.getFullYear() + ".";
-        }
-
-        if ( this.forDays ) {
-
-            info += " This schedule expires after " + this.forDays + " days.";
-
-        } else if ( this.forWeeks ) {
-
-            info += " This schedule expires after " + this.forWeeks + " weeks.";
-
-        } else if ( this.forMonths ) {
-
-            info += " This schedule expires after " + this.forMonths + " months.";
-
-        } else if ( this.endDate ) {
-
-            info += " This schedule expires after " + this.endDate.getDate() + "/" + this.endDate.getMonth() + "/" + this.endDate.getFullYear() + ".";
-
-        } else {
-
-            info += " This schedule never expires.";
-        }
-
-        return info;
     }
 };
 
@@ -426,51 +384,6 @@ var phone = new Account();
 
 phone.set('vendorName', 'O2');
 phone.set('description', 'Phone bill and that');
-
-// var phoneSchedule = phone.addPaymentSchedule();
-
-// phoneSchedule.set('amount', 99.99);
-// phoneSchedule.set('startDate', new Date(2014, 3, 11));
-// phoneSchedule.set('description', 'This and next 2 months on the 12th');
-// phoneSchedule.set('monthlyDates', [12]);
-// phoneSchedule.set('forMonths', 2);
-
-// var monthlyDebits = phone.addPaymentSchedule();
-// monthlyDebits.set('amount', 8.99);
-// monthlyDebits.set('startDate', new Date(2014, 3, 20));
-// monthlyDebits.set('description', 'Every month on the 3rd, 4th and 8th indefinitely');
-// monthlyDebits.set('monthlyDates', [3, 4, 8]);
-
-// var paySchedule = phone.addPaymentSchedule();
-// paySchedule.set('amount', 22.15);
-// paySchedule.set('startDate', new Date(2014, 3, 2));
-// paySchedule.set('description', 'Every 2 weeks on Mon + Weds for the next 4 months');
-// paySchedule.set('weeklyDays', [1, 3]);
-// paySchedule.set('weeklyGap', 1); // 1 week gap between weeks
-// paySchedule.set('forMonths', 4);
-
-// var christmasBill = phone.addPaymentSchedule();
-// christmasBill.set('amount', 155);
-// christmasBill.set('startDate', new Date(2014, 11, 24));
-// christmasBill.set('description', 'On christmas day forever');
-// christmasBill.set('monthlyDates', [24]);
-// christmasBill.set('monthlyGap', 11); // Every 12 months
-
-// var monthlyBill = phone.addPaymentSchedule();
-// monthlyBill.set('amount', 40);
-// monthlyBill.set('startDate', new Date(2012, 1, 1));
-// monthlyBill.set('description', 'Last day of each month forever');
-// monthlyBill.set('monthlyDates', [-1]);
-
-// var newBill = phone.addPaymentSchedule();
-// newBill.set('amount', 30);
-// newBill.set('startDate', new Date(2012, 1, 1));
-// newBill.set('description', 'Every friday until date (8/9/2014)');
-// newBill.set('weeklyDays', [5]);
-// newBill.set('endDate', new Date(2014, 8, 8));
-
-
-
 
 var internet = new Account("SKY", "Phone, broadband and TV");
 
@@ -542,9 +455,9 @@ var getDays = function () {
     ]
 }
 
-var getDerPayments = function (schedule, limit) {
+var getDerPayments = function (schedule, limit, startDate) {
 
-    return schedule.getPayments(limit);
+    return schedule.getPayments(limit, startDate);
 }
 
 module.exports = {

@@ -84,7 +84,7 @@ block body
                     th Day
                     th Amount
                 tbody
-                    each payment, i in getDerPayments(sch)
+                    each payment, i in getDerPayments(sch, 10)
                         tr
                             td= i+1
                             td
