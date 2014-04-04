@@ -39,8 +39,8 @@ function PaymentSchedule () {
 
     this.monthlyDates = []; // -1 - 30 (-1 = last)
     this.monthlyGap = 0;
-    // this.specificMonthlyWeek; // 1st, 2nd ... last week in month
-    // this.specificMonthlyWeekDays = []; // 0 - 6
+    this.monthlySpecific = []; // 1st, 2nd ... last week in month
+    this.monthlySpecificDays = []; // 0 - 6
 
     // Expiration
     this.forDays; // 10 days
@@ -177,10 +177,6 @@ PaymentSchedule.prototype = {
             // Loop through repetitions
             while (limit > 0) {
 
-                console.log('Month middle:', monthIterator.toString());
-
-                console.log('Month after :', monthIterator.toString());
-
                 if ( expDate && monthIterator > expDate ) {
                     limit = 0;
                     continue;
@@ -202,8 +198,6 @@ PaymentSchedule.prototype = {
 
                             dateDate.setDate( dateDate.getDate() + date );
                         }
-
-                        console.log('Result     ', dateDate.getDate());
 
                         if ( dateDate >= self.startDate ) {
 
@@ -229,6 +223,82 @@ PaymentSchedule.prototype = {
             }
         }
 
+        // Monthly special
+        else if ( self.monthlySpecific.length && self.monthlySpecificDays.length ) {
+
+            // Loop through months
+
+            var monthIterator = new Date( self.startDate.getTime() );
+
+            while ( limit > 0 ) {
+
+                // Go to start of whatever week we're in
+                var weekIterator = new Date( monthIterator.getTime() );
+                weekIterator.setDate( weekIterator.getDate() - weekIterator.getDay() );
+
+                var monthDatePool = {};
+                var sameMonth = true;
+
+                while ( limit > 0 && sameMonth ) {
+
+                    // Loop through and add days
+                    self.monthlySpecificDays.forEach(function (day, index) {
+
+                        monthDatePool[day] = monthDatePool[day] || [];
+
+                        var potentialDay = new Date( weekIterator.getTime() );
+                        potentialDay.setDate( potentialDay.getDate() + day );
+
+                        if ( potentialDay.getMonth() === monthIterator.getMonth() ) {
+
+                            if ( potentialDay >= self.startDate ) {
+
+                                monthDatePool[day].push({
+                                    date: potentialDay,
+                                    amount: self.amount
+                                });
+                            }
+
+                        } else {
+
+                            sameMonth = false;
+                        }
+                    });
+
+                    // Increment iterator
+                    weekIterator.setDate( weekIterator.getDate() + 7 );
+                }
+
+                // Pick the dates we want using their index
+                self.monthlySpecific.forEach(function (occurance) {
+
+                    self.monthlySpecificDays.forEach(function (day) {
+
+                        var cmon;
+
+                        if (occurance === -1) {
+
+                            cmon = monthDatePool[day][monthDatePool[day].length -1];
+
+                        } else if ([1,2,3,4].indexOf(occurance) !== -1) {
+
+                            cmon = monthDatePool[day][occurance-1];
+                        }
+
+                        if (cmon) {
+
+                            payments.push( cmon );
+                            limit--;
+                        }
+                    });
+
+                });
+
+                // Increase iterator by 1
+                monthIterator.setMonth( monthIterator.getMonth() + 1 );
+            }
+        }
+
         // One-off
         else {
 
@@ -237,7 +307,6 @@ PaymentSchedule.prototype = {
                 amount: self.amount
             });
         }
-
 
         return payments;
     },
@@ -349,6 +418,13 @@ phone.set('description', 'Phone bill and that');
 
 
 var internet = new Account("SKY", "Phone, broadband and TV");
+
+var secondWeekPayments = internet.addPaymentSchedule();
+secondWeekPayments.set('amount', 22.55);
+secondWeekPayments.set('startDate', new Date(2014, 3, 4));
+secondWeekPayments.set('description', 'Every 1st and last tues and thurs of the month');
+secondWeekPayments.set('monthlySpecific', [1, -1]);
+secondWeekPayments.set('monthlySpecificDays', [2, 4]);
 
 var monthlyPayments = internet.addPaymentSchedule();
 monthlyPayments.set('amount', 100);
