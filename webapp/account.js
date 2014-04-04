@@ -64,45 +64,34 @@ PaymentSchedule.prototype = {
     getExpiryDate: function () {
 
         var self = this,
-            exp = new Date( this.startDate.getTime() );
+            exp = new Date( self.startDate.getTime() );
 
-        // console.log('Start date', self.amount, self.startDate.toString());
+        if ( self.endDate ) {
 
-        // If we have an end date, it's this
-        if ( this.endDate ) {
-
-            return new Date( this.endDate.getTime() );
+            return new Date( self.endDate.getTime() );
         }
 
-        // Repeats
-        if ( this.forDays ) {
+        if ( self.forDays ) {
 
-
-            exp.setDate( exp.getDate() + this.forDays );
-            // console.log('End date (days)', self.amount, exp.toString());
+            exp.setDate( exp.getDate() + self.forDays );
             return exp;
         }
 
-        if ( this.forWeeks ) {
+        if ( self.forWeeks ) {
 
-            exp.setDate( exp.getDate() + this.forWeeks * 7 );
-            // console.log('End date (weeks)', self.amount, exp.toString());
+            exp.setDate( exp.getDate() + self.forWeeks * 7 );
             return exp;
         }
 
-        if ( this.forMonths ) {
+        if ( self.forMonths ) {
 
-            console.log('Current month', exp.getMonth(), 'Add', this.forMonths);
-            exp.setMonth( exp.getMonth() + this.forMonths );
-
-            // console.log('End date (months)', self.amount, exp.toString());
+            exp.setMonth( exp.getMonth() + self.forMonths );
             return exp;
         }
 
-        if ( this.forYears ) {
+        if ( self.forYears ) {
 
-            exp.setFullYear( exp.getFullYear() + this.forYears );
-            // console.log('End date (years)', self.amount, exp.toString());
+            exp.setFullYear( exp.getFullYear() + self.forYears );
             return exp;
         }
 
@@ -154,7 +143,7 @@ PaymentSchedule.prototype = {
             // Loop through repetitions
             while (limit > 0) {
 
-                if ( weekIterator > expDate ) {
+                if ( expDate && weekIterator > expDate ) {
                     limit = 0;
                     continue;
                 }
@@ -163,11 +152,7 @@ PaymentSchedule.prototype = {
 
                     if (limit > 0) {
 
-                        console.log('limit now =', limit);
-
-                        var sunday = new Date( weekIterator.getTime() );
-
-                        var dayDate = new Date( sunday.getTime() );
+                        var dayDate = new Date( weekIterator.getTime() );
                         dayDate.setDate( dayDate.getDate() + day );
 
                         if ( dayDate >= self.startDate ) {
@@ -183,11 +168,59 @@ PaymentSchedule.prototype = {
                 });
 
                 weekIterator.setDate( weekIterator.getDate() + 7 + ( self.weeklyGap * 7 ) );
-                console.log('limit =', limit);
             }
-            console.log('......');
+        }
 
 
+
+
+
+
+
+        if ( self.monthlyDates.length ) {
+
+            var monthIterator = new Date( self.startDate.getTime() );
+            monthIterator.setDate( 0 );
+
+            // Loop through repetitions
+            while (limit > 0) {
+
+                console.log('Month middle:', monthIterator.toString());
+
+                console.log('Month after :', monthIterator.toString());
+
+                if ( expDate && monthIterator > expDate ) {
+                    limit = 0;
+                    continue;
+                }
+
+                self.monthlyDates.forEach(function (date, index) {
+
+                    if (limit > 0) {
+
+                        var dateDate = new Date( monthIterator.getTime() );
+                        console.log('Month start', dateDate.getDate());
+                        console.log('Add dates  ', date);
+
+                        dateDate.setDate( dateDate.getDate() + date );
+
+                        console.log('Result     ', dateDate.getDate());
+
+                        if ( dateDate >= self.startDate ) {
+
+                            payments.push({
+                                date: dateDate,
+                                amount: self.amount
+                            });
+
+                            limit--;
+                        }
+                    }
+                });
+                console.log('Month before:', monthIterator.toString());
+                monthIterator.setMonth( monthIterator.getMonth() + 2 + self.monthlyGap );
+                monthIterator.setDate( 0 );
+            }
         }
 
 
@@ -263,6 +296,12 @@ phone.set('description', 'Phone bill and that');
 // phoneSchedule.set('monthlyDates', [12]);
 // phoneSchedule.set('forMonths', 2);
 
+var monthlyDebits = phone.addPaymentSchedule();
+monthlyDebits.set('amount', 8.99);
+monthlyDebits.set('startDate', new Date(2014, 3, 20));
+monthlyDebits.set('description', 'Every month on the 3rd, 4th and 8th indefinitely');
+monthlyDebits.set('monthlyDates', [3, 4, 8]);
+
 var paySchedule = phone.addPaymentSchedule();
 paySchedule.set('amount', 22.15);
 paySchedule.set('startDate', new Date(2014, 3, 2));
@@ -290,8 +329,6 @@ newBill.set('startDate', new Date(2012, 1, 1));
 newBill.set('description', 'Every friday until date');
 newBill.set('weeklyDays', [5]);
 newBill.set('endDate', new Date(2014, 8, 8));
-
-
 
 
 

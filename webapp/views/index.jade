@@ -89,7 +89,7 @@ block body
                                 //- = payment.date.toString()
                                 = payment.date.getDate()
                                 | /
-                                = payment.date.getMonth()
+                                = payment.date.getMonth() + 1
                                 | /
                                 = payment.date.getFullYear()
                             td= days[payment.date.getDay()]
