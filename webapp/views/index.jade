@@ -79,12 +79,14 @@ block body
             h5= sch.description
             table.table.table-condensed
                 thead
+                    th Payment
                     th Date
                     th Day
                     th Amount
                 tbody
-                    each payment, i in getDerPayments(sch, 15)
+                    each payment, i in getDerPayments(sch)
                         tr
+                            td= i+1
                             td
                                 //- = payment.date.toString()
                                 = payment.date.getDate()

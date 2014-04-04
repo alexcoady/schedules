@@ -98,183 +98,203 @@ PaymentSchedule.prototype = {
         return false;
     },
 
-    getPayments: function (limit) {
+    getDailyPayments: function (limit) {
 
         var self = this,
+            expDate = self.getExpiryDate(),
             payments = [],
-            nextDate,
-            currentDate = new Date( self.startDate.getTime() ),
-            expDate = self.getExpiryDate();
+            dayIterator;
 
-        limit = limit || 1;
+        // Define iterator to loop through days
+        dayIterator = new Date( self.startDate.getTime() );
 
-        // Daily
-        if ( self.daily ) {
+        while ( limit > 0 ) {
 
-            var dayIterator = new Date( self.startDate.getTime() );
-
-            while ( limit > 0 ) {
-
-                if ( expDate && dayIterator > expDate ) {
-                    limit = 0;
-                    continue;
-                }
-
-                payments.push({
-                    date: new Date( dayIterator.getTime() ),
-                    amount: self.amount
-                });
-
-                dayIterator.setDate( dayIterator.getDate() + 1 );
+            if ( expDate && dayIterator > expDate ) {
+                limit = 0;
+                continue;
             }
+
+            payments.push({
+                date: new Date( dayIterator.getTime() ),
+                amount: self.amount
+            });
+
+            limit--;
+
+            dayIterator.setDate( dayIterator.getDate() + 1 );
         }
 
-        // Weekly
-        else if ( self.weeklyDays.length ) {
+        return payments;
+    },
 
-            var weekIterator = new Date( self.startDate.getTime() );
+    getWeeklyPayments: function (limit) {
 
-            // Set to sunday before start date
+        var self = this,
+            expDate = self.getExpiryDate(),
+            payments = [],
+            weekIterator;
+
+        weekIterator = new Date( self.startDate.getTime() );
+
+        // Set to sunday before start date
+        weekIterator.setDate( weekIterator.getDate() - weekIterator.getDay() );
+
+        // Loop through repetitions
+        while ( limit > 0 ) {
+
+            if ( expDate && weekIterator > expDate ) {
+                limit = 0;
+                continue;
+            }
+
+            self.weeklyDays.forEach(function (day, index) {
+
+                if (limit > 0) {
+
+                    var dayDate = new Date( weekIterator.getTime() );
+                    dayDate.setDate( dayDate.getDate() + day );
+
+                    if ( dayDate >= self.startDate ) {
+
+                        payments.push({
+                            date: dayDate,
+                            amount: self.amount
+                        });
+
+                        limit--;
+                    }
+                }
+            });
+
+            weekIterator.setDate( weekIterator.getDate() + 7 + ( self.weeklyGap * 7 ) );
+        }
+
+        return payments;
+    },
+
+    getMonthlyPayments: function (limit) {
+
+        var self = this,
+            expDate = self.getExpiryDate(),
+            payments = [],
+            monthIterator;
+
+        monthIterator = new Date( self.startDate.getTime() );
+        monthIterator.setDate( 0 );
+
+        // Loop through repetitions
+        while (limit > 0) {
+
+            if ( expDate && monthIterator > expDate ) {
+                limit = 0;
+                continue;
+            }
+
+            self.monthlyDates.forEach(function (date, index) {
+
+                if (limit > 0) {
+
+                    var dateDate = new Date( monthIterator.getTime() );
+
+                    if ( date === -1 ) {
+
+                        // Jump to next month + remove 1 day
+                        dateDate.setMonth( dateDate.getMonth() + 1 );
+                        dateDate.setDate( 0 );
+
+                    } else {
+
+                        dateDate.setDate( dateDate.getDate() + date );
+                    }
+
+                    if ( dateDate >= self.startDate ) {
+
+                        payments.push({
+                            date: dateDate,
+                            amount: self.amount
+                        });
+
+                        limit--;
+                    }
+                }
+            });
+
+            // Set to the 1st of this month
+            monthIterator.setDate( 1 );
+
+            // Increment month
+            monthIterator.setMonth( monthIterator.getMonth() + 1 + self.monthlyGap );
+
+            // Go extra month ahead and jump back 1 day end of correct month
+            monthIterator.setMonth( monthIterator.getMonth() + 1 );
+            monthIterator.setDate( 0 );
+        }
+
+        return payments;
+    },
+
+    getSpecificMonthlyPayments: function (limit) {
+
+        var self = this,
+            expDate = self.getExpiryDate(),
+            payments = [],
+            monthIterator,
+            weekIterator,
+            monthDatePool = {},
+            sameMonth,
+            potentialDay;
+
+        // Loop through months
+
+        monthIterator = new Date( self.startDate.getTime() );
+
+        while ( limit > 0 ) {
+
+            // Go to start of whatever week we're in
+            weekIterator = new Date( monthIterator.getTime() );
             weekIterator.setDate( weekIterator.getDate() - weekIterator.getDay() );
 
-            // Loop through repetitions
-            while ( limit > 0 ) {
+            sameMonth = true;
 
-                if ( expDate && weekIterator > expDate ) {
-                    limit = 0;
-                    continue;
-                }
+            while ( limit > 0 && sameMonth ) {
 
-                self.weeklyDays.forEach(function (day, index) {
+                // Loop through and add days
+                self.monthlySpecificDays.forEach(function (day, index) {
 
-                    if (limit > 0) {
+                    monthDatePool[day] = monthDatePool[day] || [];
 
-                        var dayDate = new Date( weekIterator.getTime() );
-                        dayDate.setDate( dayDate.getDate() + day );
+                    potentialDay = new Date( weekIterator.getTime() );
+                    potentialDay.setDate( potentialDay.getDate() + day );
 
-                        if ( dayDate >= self.startDate ) {
+                    if ( potentialDay.getMonth() === monthIterator.getMonth() ) {
 
-                            payments.push({
-                                date: dayDate,
+                        if ( potentialDay >= self.startDate ) {
+
+                            monthDatePool[day].push({
+                                date: potentialDay,
                                 amount: self.amount
                             });
-
-                            limit--;
                         }
+
+                    } else {
+
+                        sameMonth = false;
                     }
                 });
 
-                weekIterator.setDate( weekIterator.getDate() + 7 + ( self.weeklyGap * 7 ) );
+                // Increment iterator
+                weekIterator.setDate( weekIterator.getDate() + 7 );
             }
-        }
 
-        // Monthly
-        else if ( self.monthlyDates.length ) {
+            // Pick the dates we want using their index
+            self.monthlySpecific.forEach(function (occurance) {
 
-            var monthIterator = new Date( self.startDate.getTime() );
-            monthIterator.setDate( 0 );
+                self.monthlySpecificDays.forEach(function (day) {
 
-            // Loop through repetitions
-            while (limit > 0) {
+                    var cmon;
 
-                if ( expDate && monthIterator > expDate ) {
-                    limit = 0;
-                    continue;
-                }
-
-                self.monthlyDates.forEach(function (date, index) {
-
-                    if (limit > 0) {
-
-                        var dateDate = new Date( monthIterator.getTime() );
-
-                        if ( date === -1 ) {
-
-                            // Jump to next month + remove 1 day
-                            dateDate.setMonth( dateDate.getMonth() + 1 );
-                            dateDate.setDate( 0 );
-
-                        } else {
-
-                            dateDate.setDate( dateDate.getDate() + date );
-                        }
-
-                        if ( dateDate >= self.startDate ) {
-
-                            payments.push({
-                                date: dateDate,
-                                amount: self.amount
-                            });
-
-                            limit--;
-                        }
-                    }
-                });
-
-                // Set to the 1st of this month
-                monthIterator.setDate( 1 );
-
-                // Increment month
-                monthIterator.setMonth( monthIterator.getMonth() + 1 + self.monthlyGap );
-
-                // Go extra month ahead and jump back 1 day end of correct month
-                monthIterator.setMonth( monthIterator.getMonth() + 1 );
-                monthIterator.setDate( 0 );
-            }
-        }
-
-        // Monthly special
-        else if ( self.monthlySpecific.length && self.monthlySpecificDays.length ) {
-
-            // Loop through months
-
-            var monthIterator = new Date( self.startDate.getTime() );
-
-            while ( limit > 0 ) {
-
-                // Go to start of whatever week we're in
-                var weekIterator = new Date( monthIterator.getTime() );
-                weekIterator.setDate( weekIterator.getDate() - weekIterator.getDay() );
-
-                var monthDatePool = {};
-                var sameMonth = true;
-
-                while ( limit > 0 && sameMonth ) {
-
-                    // Loop through and add days
-                    self.monthlySpecificDays.forEach(function (day, index) {
-
-                        monthDatePool[day] = monthDatePool[day] || [];
-
-                        var potentialDay = new Date( weekIterator.getTime() );
-                        potentialDay.setDate( potentialDay.getDate() + day );
-
-                        if ( potentialDay.getMonth() === monthIterator.getMonth() ) {
-
-                            if ( potentialDay >= self.startDate ) {
-
-                                monthDatePool[day].push({
-                                    date: potentialDay,
-                                    amount: self.amount
-                                });
-                            }
-
-                        } else {
-
-                            sameMonth = false;
-                        }
-                    });
-
-                    // Increment iterator
-                    weekIterator.setDate( weekIterator.getDate() + 7 );
-                }
-
-                // Pick the dates we want using their index
-                self.monthlySpecific.forEach(function (occurance) {
-
-                    self.monthlySpecificDays.forEach(function (day) {
-
-                        var cmon;
+                    if ( limit > 0 ) {
 
                         if (occurance === -1) {
 
@@ -290,22 +310,57 @@ PaymentSchedule.prototype = {
                             payments.push( cmon );
                             limit--;
                         }
-                    });
-
+                    }
                 });
+            });
 
-                // Increase iterator by 1
-                monthIterator.setMonth( monthIterator.getMonth() + 1 );
-            }
+            // Increase iterator by 1
+            monthIterator.setMonth( monthIterator.getMonth() + 1 );
         }
 
-        // One-off
-        else {
+        return payments;
+    },
 
-            payments.push({
-                date: new Date( self.startDate.getTime() ),
-                amount: self.amount
-            });
+    getOneOffPayment: function () {
+
+        var self = this,
+            payments = [];
+
+        payments.push({
+            date: new Date( self.startDate.getTime() ),
+            amount: self.amount
+        });
+
+        return payments;
+    },
+
+    getPayments: function (limit) {
+
+        var self = this,
+            payments = [],
+            expDate = self.getExpiryDate();
+
+        limit = limit || 1;
+
+        if ( self.daily ) {
+
+            payments = self.getDailyPayments(limit);
+
+        } else if ( self.weeklyDays.length ) {
+
+            payments = self.getWeeklyPayments(limit);
+
+        } else if ( self.monthlyDates.length ) {
+
+            payments = self.getMonthlyPayments(limit);
+
+        } else if ( self.monthlySpecific.length && self.monthlySpecificDays.length ) {
+
+            payments = self.getSpecificMonthlyPayments(limit);
+
+        } else {
+
+            payments = self.getOneOffPayment();
         }
 
         return payments;
@@ -419,6 +474,12 @@ phone.set('description', 'Phone bill and that');
 
 var internet = new Account("SKY", "Phone, broadband and TV");
 
+var weeklyPayments = internet.addPaymentSchedule();
+weeklyPayments.set('amount', 11.97);
+weeklyPayments.set('startDate', new Date(2014, 3, 4));
+weeklyPayments.set('description', 'Every week on tuesday');
+weeklyPayments.set('weeklyDays', [2]);
+
 var secondWeekPayments = internet.addPaymentSchedule();
 secondWeekPayments.set('amount', 22.55);
 secondWeekPayments.set('startDate', new Date(2014, 3, 4));
@@ -445,17 +506,10 @@ dailyCharge.set('description', 'Daily usage costs 15th until the 20th');
 dailyCharge.set('daily', true);
 dailyCharge.set('endDate', new Date(2014, 1, 20));
 
-
-
-
 var getDebug = function () {
 
     return [internet];
 }
-
-
-
-
 
 var getMonths = function () {
 
@@ -474,7 +528,6 @@ var getMonths = function () {
         "Dec"
     ]
 }
-
 
 var getDays = function () {
 
