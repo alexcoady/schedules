@@ -108,32 +108,29 @@ PaymentSchedule.prototype = {
 
         limit = limit || 1;
 
-        // First payment is the start date
-        // payments.push({
-        //     date: currentDate,
-        //     amount: self.amount
-        // });
+        // Daily
+        if ( self.daily ) {
 
-        // limit--;
+            var dayIterator = new Date( self.startDate.getTime() );
 
-        // Collect results
+            while ( limit > 0 ) {
 
-        // if ( self.daily ) {
+                if ( expDate && dayIterator > expDate ) {
+                    limit = 0;
+                    continue;
+                }
 
-        //     nextDate = new Date( currentDate.getTime() );
-        //     nextDate.setDate( nextDate.getDate() + 1 + self.dailyGap );
+                payments.push({
+                    date: new Date( dayIterator.getTime() ),
+                    amount: self.amount
+                });
 
-        //     if ( expDate && nextDate > expDate ) return payments;
+                dayIterator.setDate( dayIterator.getDate() + 1 );
+            }
+        }
 
-        //     currentDate = nextDate;
-
-        //     payments.push({
-        //         date: nextDate,
-        //         amount: self.amount
-        //     });
-        // }
-
-        if ( self.weeklyDays.length ) {
+        // Weekly
+        else if ( self.weeklyDays.length ) {
 
             var weekIterator = new Date( self.startDate.getTime() );
 
@@ -141,7 +138,7 @@ PaymentSchedule.prototype = {
             weekIterator.setDate( weekIterator.getDate() - weekIterator.getDay() );
 
             // Loop through repetitions
-            while (limit > 0) {
+            while ( limit > 0 ) {
 
                 if ( expDate && weekIterator > expDate ) {
                     limit = 0;
@@ -171,13 +168,8 @@ PaymentSchedule.prototype = {
             }
         }
 
-
-
-
-
-
-
-        if ( self.monthlyDates.length ) {
+        // Monthly
+        else if ( self.monthlyDates.length ) {
 
             var monthIterator = new Date( self.startDate.getTime() );
             monthIterator.setDate( 0 );
@@ -199,10 +191,17 @@ PaymentSchedule.prototype = {
                     if (limit > 0) {
 
                         var dateDate = new Date( monthIterator.getTime() );
-                        console.log('Month start', dateDate.getDate());
-                        console.log('Add dates  ', date);
 
-                        dateDate.setDate( dateDate.getDate() + date );
+                        if ( date === -1 ) {
+
+                            // Jump to next month + remove 1 day
+                            dateDate.setMonth( dateDate.getMonth() + 1 );
+                            dateDate.setDate( 0 );
+
+                        } else {
+
+                            dateDate.setDate( dateDate.getDate() + date );
+                        }
 
                         console.log('Result     ', dateDate.getDate());
 
@@ -217,10 +216,23 @@ PaymentSchedule.prototype = {
                         }
                     }
                 });
-                console.log('Month before:', monthIterator.toString());
-                monthIterator.setMonth( monthIterator.getMonth() + 2 + self.monthlyGap );
+
+                // Set to the 1st of this month
+                monthIterator.setDate( 1 );
+
+                // Increment month
+                monthIterator.setMonth( monthIterator.getMonth() + 1 + self.monthlyGap );
+
+                // Go extra month ahead and jump back 1 day end of correct month
+                monthIterator.setMonth( monthIterator.getMonth() + 1 );
                 monthIterator.setDate( 0 );
             }
+        }
+
+        // One-off
+        else {
+
+
         }
 
 
@@ -296,39 +308,39 @@ phone.set('description', 'Phone bill and that');
 // phoneSchedule.set('monthlyDates', [12]);
 // phoneSchedule.set('forMonths', 2);
 
-var monthlyDebits = phone.addPaymentSchedule();
-monthlyDebits.set('amount', 8.99);
-monthlyDebits.set('startDate', new Date(2014, 3, 20));
-monthlyDebits.set('description', 'Every month on the 3rd, 4th and 8th indefinitely');
-monthlyDebits.set('monthlyDates', [3, 4, 8]);
+// var monthlyDebits = phone.addPaymentSchedule();
+// monthlyDebits.set('amount', 8.99);
+// monthlyDebits.set('startDate', new Date(2014, 3, 20));
+// monthlyDebits.set('description', 'Every month on the 3rd, 4th and 8th indefinitely');
+// monthlyDebits.set('monthlyDates', [3, 4, 8]);
 
-var paySchedule = phone.addPaymentSchedule();
-paySchedule.set('amount', 22.15);
-paySchedule.set('startDate', new Date(2014, 3, 2));
-paySchedule.set('description', 'Every 2 weeks on Mon + Weds for the next 4 months');
-paySchedule.set('weeklyDays', [1, 3]);
-paySchedule.set('weeklyGap', 1); // 1 week gap between weeks
-paySchedule.set('forMonths', 4);
+// var paySchedule = phone.addPaymentSchedule();
+// paySchedule.set('amount', 22.15);
+// paySchedule.set('startDate', new Date(2014, 3, 2));
+// paySchedule.set('description', 'Every 2 weeks on Mon + Weds for the next 4 months');
+// paySchedule.set('weeklyDays', [1, 3]);
+// paySchedule.set('weeklyGap', 1); // 1 week gap between weeks
+// paySchedule.set('forMonths', 4);
 
-var christmasBill = phone.addPaymentSchedule();
-christmasBill.set('amount', 155);
-christmasBill.set('startDate', new Date(2014, 11, 24));
-christmasBill.set('description', 'On christmas day forever');
-christmasBill.set('monthlyDates', [24]);
-christmasBill.set('monthlyGap', 11); // Every 12 months
+// var christmasBill = phone.addPaymentSchedule();
+// christmasBill.set('amount', 155);
+// christmasBill.set('startDate', new Date(2014, 11, 24));
+// christmasBill.set('description', 'On christmas day forever');
+// christmasBill.set('monthlyDates', [24]);
+// christmasBill.set('monthlyGap', 11); // Every 12 months
 
-var monthlyBill = phone.addPaymentSchedule();
-monthlyBill.set('amount', 40);
-monthlyBill.set('startDate', new Date(2012, 1, 1));
-monthlyBill.set('description', 'Last day of each month forever');
-monthlyBill.set('monthlyDates', [-1]);
+// var monthlyBill = phone.addPaymentSchedule();
+// monthlyBill.set('amount', 40);
+// monthlyBill.set('startDate', new Date(2012, 1, 1));
+// monthlyBill.set('description', 'Last day of each month forever');
+// monthlyBill.set('monthlyDates', [-1]);
 
-var newBill = phone.addPaymentSchedule();
-newBill.set('amount', 30);
-newBill.set('startDate', new Date(2012, 1, 1));
-newBill.set('description', 'Every friday until date');
-newBill.set('weeklyDays', [5]);
-newBill.set('endDate', new Date(2014, 8, 8));
+// var newBill = phone.addPaymentSchedule();
+// newBill.set('amount', 30);
+// newBill.set('startDate', new Date(2012, 1, 1));
+// newBill.set('description', 'Every friday until date (8/9/2014)');
+// newBill.set('weeklyDays', [5]);
+// newBill.set('endDate', new Date(2014, 8, 8));
 
 
 
@@ -359,7 +371,7 @@ dailyCharge.set('endDate', new Date(2014, 1, 20));
 
 var getDebug = function () {
 
-    return [phone];
+    return [internet];
 }
 
 
