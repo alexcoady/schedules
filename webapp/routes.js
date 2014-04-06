@@ -17,6 +17,11 @@ module.exports = function (app) {
         });
     });
 
+    app.get('/add-payment', function(req, res){
+
+        res.render('add-payment');
+    });
+
     // Return the object for future requirements
     return Routes;
 };

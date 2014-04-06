@@ -124,7 +124,7 @@ PaymentSchedule.prototype = {
 
             limit--;
 
-            dayIterator.setDate( dayIterator.getDate() + 1 );
+            dayIterator.setDate( dayIterator.getDate() + 1 + self.dailyGap );
         }
 
         return payments;
@@ -201,23 +201,23 @@ PaymentSchedule.prototype = {
 
                 if (limit > 0) {
 
-                    var dateDate = new Date( monthIterator.getTime() );
+                    var potentialDate = new Date( monthIterator.getTime() );
 
                     if ( date === -1 ) {
 
                         // Jump to next month + remove 1 day
-                        dateDate.setMonth( dateDate.getMonth() + 1 );
-                        dateDate.setDate( 0 );
+                        potentialDate.setMonth( potentialDate.getMonth() + 1 );
+                        potentialDate.setDate( 0 );
 
                     } else {
 
-                        dateDate.setDate( dateDate.getDate() + date );
+                        potentialDate.setDate( potentialDate.getDate() + date );
                     }
 
-                    if ( dateDate >= startDate ) {
+                    if ( potentialDate >= startDate ) {
 
                         payments.push({
-                            date: dateDate,
+                            date: potentialDate,
                             amount: self.amount
                         });
 
