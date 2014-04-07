@@ -19,87 +19,102 @@ block body
 
         h3 Repeats
 
-        div.form-group
-            div.radio
-                label
-                    input(type="radio", name="repeatType", value="daily")
-                    | Daily
+        div.row
+            div.col-xs-3
 
-        div.form-group
-            label(for="add-daily-gap") Every ... days (1-based, stored as 0-based)
-            input(type="text", name="dailyGap", value="1")#add-daily-gap.form-control
-
-        div.form-group
-            div.radio
-                label
-                    input(type="radio", name="repeatType", value="weekly")
-                    | Weekly
-
-        div.form-group
-                each day, i in ["Sun", "Mon", "Tues", "Weds", "Thurs", "Fri", "Sat"]
-                    div.checkbox-inline
+                div.form-group
+                    div.radio
                         label
-                            input(type="checkbox", name="weeklyDays[]", value=i)
-                            = day
+                            input(type="radio", name="repeatType", value="daily")
+                            | Daily
 
-        div.form-group
-            label(for="add-weekly-gap") Every ... weeks (1-based, stored as 0-based)
-            input(type="text", name="weeklyGap", value="1")#add-weekly-gap.form-control
+                div.form-group
+                    label(for="add-daily-gap") Every ... days (1-based, stored as 0-based)
+                    input(type="text", name="dailyGap", value="1")#add-daily-gap.form-control
 
+            div.col-xs-3
 
-        div.form-group
-        div.radio
-            label
-                input(type="radio", name="repeatType", value="monthly")
-                | Monthly
-
-
-        div.form-group
-            each index in [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
-                div.checkbox-inline
-                    label
-                        input(type="checkbox", name="monthlyDays[]", value=index)
-                        = index + 1
-
-        div.form-group
-            label(for="add-monthly-gap") Every ... months (1-based, stored as 0-based)
-            input(type="text", name="monthlyGap", value="1")#add-monthly-gap.form-control
-
-
-        div.form-group
-        div.radio
-            label
-                input(type="radio", name="repeatType", value="monthlySpecific")
-                | Special monthly
-
-        div.form-group
-            div.checkbox-inline
-                label
-                    input(type="checkbox", name="monthlySpecific[]", value="1")
-                    | 1st
-            div.checkbox-inline
-                label
-                    input(type="checkbox", name="monthlySpecific[]", value="2")
-                    | 2nd
-            div.checkbox-inline
-                label
-                    input(type="checkbox", name="monthlySpecific[]", value="3")
-                    | 3rd
-            div.checkbox-inline
-                label
-                    input(type="checkbox", name="monthlySpecific[]", value="4")
-                    | 4th
-            div.checkbox-inline
-                label
-                    input(type="checkbox", name="monthlySpecific[]", value="-1")
-                    | Last
-
-        div.form-group
-                each day, i in ["Sun", "Mon", "Tues", "Weds", "Thurs", "Fri", "Sat"]
-                    div.checkbox-inline
+                div.form-group
+                    div.radio
                         label
-                            input(type="checkbox", name="monthlySpecificDays[]", value=i)
-                            = day
+                            input(type="radio", name="repeatType", value="weekly")
+                            | Weekly
+
+                div.form-group
+                        each day, i in ["Sun", "Mon", "Tues", "Weds", "Thurs", "Fri", "Sat"]
+                            div.checkbox-inline
+                                label
+                                    input(type="checkbox", name="weeklyDays[]", value=i)
+                                    = day
+
+                div.form-group
+                    label(for="add-weekly-gap") Every ... weeks (1-based, stored as 0-based)
+                    input(type="text", name="weeklyGap", value="1")#add-weekly-gap.form-control
+
+
+            div.col-xs-3
+                div.form-group
+                    div.radio
+                        label
+                            input(type="radio", name="repeatType", value="monthly")
+                            | Monthly
+
+
+                    div.form-group
+                        each index in [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
+                            div.checkbox-inline
+                                label
+                                    input(type="checkbox", name="monthlyDays[]", value=index)
+                                    = index + 1
+
+                    div.form-group
+                        label(for="add-monthly-gap") Every ... months (1-based, stored as 0-based)
+                        input(type="text", name="monthlyGap", value="1")#add-monthly-gap.form-control
+
+
+
+            div.col-xs-3
+
+                div.form-group
+                    div.radio
+                        label
+                            input(type="radio", name="repeatType", value="monthlySpecific")
+                            | Special monthly
+
+                    div.form-group
+                        div.checkbox-inline
+                            label
+                                input(type="checkbox", name="monthlySpecific[]", value="1")
+                                | 1st
+                        div.checkbox-inline
+                            label
+                                input(type="checkbox", name="monthlySpecific[]", value="2")
+                                | 2nd
+                        div.checkbox-inline
+                            label
+                                input(type="checkbox", name="monthlySpecific[]", value="3")
+                                | 3rd
+                        div.checkbox-inline
+                            label
+                                input(type="checkbox", name="monthlySpecific[]", value="4")
+                                | 4th
+                        div.checkbox-inline
+                            label
+                                input(type="checkbox", name="monthlySpecific[]", value="-1")
+                                | Last
+
+                    div.form-group
+                            each day, i in ["Sun", "Mon", "Tues", "Weds", "Thurs", "Fri", "Sat"]
+                                div.checkbox-inline
+                                    label
+                                        input(type="checkbox", name="monthlySpecificDays[]", value=i)
+                                        = day
+
+
+
+
+
+
 
         h3 For
 

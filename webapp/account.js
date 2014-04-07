@@ -48,6 +48,9 @@ function PaymentSchedule () {
     this.forMonths; // 2 months
     this.forYears; // 10 years
 
+    this.forType; // days || weeks || months || years
+    this.forValue; // 10, 3, 200 etc
+
     this.endDate;
 }
 
@@ -65,6 +68,13 @@ PaymentSchedule.prototype = {
 
         var self = this,
             exp = new Date( self.startDate.getTime() );
+
+        var betterSwitch = {
+            "days": function () {},
+            "weeks": function () {},
+            "months": function () {},
+            "years": function () {}
+        };
 
         if ( self.endDate ) {
 
