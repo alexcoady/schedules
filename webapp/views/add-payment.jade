@@ -110,29 +110,21 @@ block body
                                         input(type="checkbox", name="monthlySpecificDays[]", value=i)
                                         = day
 
-
-
-
-
-
-
         h3 For
 
-        div.form-group
-            label(for="add-for-days") ... days
-            input(type="text", name="forDays")#add-for-days.form-control
+        div.row
+            div.col-xs-2
+                div.form-group
+                    label(for="add-for-value").sr-only For
+                    input(type="text", name="forValue")#add-for-value.form-control
 
-        div.form-group
-            label(for="add-for-weeks") ... weeks
-            input(type="text", name="forWeeks")#add-for-weeks.form-control
-
-        div.form-group
-            label(for="add-for-months") ... months
-            input(type="text", name="forMonths")#add-for-months.form-control
-
-        div.form-group
-            label(for="add-for-years") ... years
-            input(type="text", name="forYears")#add-for-years.form-control
+            div.col-xs-10
+                div.form-group
+                    select.form-control
+                        option(value="days") Days
+                        option(value="weeks") Weeks
+                        option(value="months") Months
+                        option(value="years") Years
 
         h3 Until
 

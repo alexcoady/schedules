@@ -42,12 +42,6 @@ function PaymentSchedule () {
     this.monthlySpecific = []; // 1st, 2nd ... last week in month
     this.monthlySpecificDays = []; // 0 - 6
 
-    // Expiration
-    this.forDays; // 10 days
-    this.forWeeks; // 3 weeks
-    this.forMonths; // 2 months
-    this.forYears; // 10 years
-
     this.forType; // days || weeks || months || years
     this.forValue; // 10, 3, 200 etc
 
@@ -69,43 +63,37 @@ PaymentSchedule.prototype = {
         var self = this,
             exp = new Date( self.startDate.getTime() );
 
-        var betterSwitch = {
-            "days": function () {},
-            "weeks": function () {},
-            "months": function () {},
-            "years": function () {}
-        };
-
         if ( self.endDate ) {
 
             return new Date( self.endDate.getTime() );
         }
 
-        if ( self.forDays ) {
+        switch ( self.forType ) {
 
-            exp.setDate( exp.getDate() + self.forDays );
-            return exp;
+            case "days": {
+                exp.setDate( exp.getDate() + self.forValue );
+                console.log('Case', self.forType);
+                return exp;
+            }
+            case "weeks": {
+                exp.setDate( exp.getDate() + self.forValue * 7 );
+                console.log('Case', self.forType);
+                return exp;
+            }
+            case "months": {
+                exp.setMonth( exp.getMonth() + self.forValue );
+                console.log('Case', self.forType);
+                return exp;
+            }
+            case "years": {
+                exp.setFullYear( exp.getFullYear() + self.forValue );
+                console.log('Case', self.forType);
+                return exp;
+            }
+            default: {
+                return false;
+            }
         }
-
-        if ( self.forWeeks ) {
-
-            exp.setDate( exp.getDate() + self.forWeeks * 7 );
-            return exp;
-        }
-
-        if ( self.forMonths ) {
-
-            exp.setMonth( exp.getMonth() + self.forMonths );
-            return exp;
-        }
-
-        if ( self.forYears ) {
-
-            exp.setFullYear( exp.getFullYear() + self.forYears );
-            return exp;
-        }
-
-        return false;
     },
 
     getDailyPayments: function (limit, startDate) {
@@ -415,7 +403,8 @@ monthlyPayments.set('amount', 100);
 monthlyPayments.set('startDate', new Date(2013, 9, 1));
 monthlyPayments.set('description', '12th of every month for a year');
 monthlyPayments.set('monthlyDates', [12]);
-monthlyPayments.set('forMonths', 12);
+monthlyPayments.set('forType', "months");
+monthlyPayments.set('forValue', 12);
 
 var janOneOff = internet.addPaymentSchedule();
 janOneOff.set('amount', 65);
